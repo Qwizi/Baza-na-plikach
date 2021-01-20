@@ -1,8 +1,8 @@
-from db import Database, Student
+from menus import main_menu
+
 
 def main():
-    # Tworzomy plik z baza
-    db = Database("data.json")
+    main_menu.select_option()
 
 
 if __name__ == "__main__":

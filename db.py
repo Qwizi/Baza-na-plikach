@@ -34,6 +34,7 @@ class Database:
                 file.seek(0)
                 file.write(json.dumps(data))
                 file.truncate()
+            return student
         except Exception as e:
             print(e)
 
@@ -77,3 +78,6 @@ class Database:
 
     def update(self, name):
         pass
+
+
+db = Database("data.json")
