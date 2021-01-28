@@ -1,11 +1,11 @@
-from actions import (
+from app.actions import (
     FindAllUserAction,
     AddUserAction,
     FindUserAction,
     DeleteUserAction
 )
-from menus import Menu
-from messages import main_menu_messages
+from app.menus import Menu
+from app.messages import main_menu_messages
 
 
 def create_menu():

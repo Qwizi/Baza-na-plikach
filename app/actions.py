@@ -1,8 +1,8 @@
 import sys
 from abc import ABC, abstractmethod
-from db import db, User
-from exceptions import InvalidUser, NotFoundUser, UserExists
-from messages import (
+from app.db import db, User
+from app.exceptions import InvalidUser, NotFoundUser, UserExists
+from app.messages import (
     NOT_IMPLEMENTED_ERROR,
     ACTION_USER_ADD_MESSAGE,
     NOT_VALID_USER,
@@ -65,8 +65,8 @@ class AddUserAction(Action):
         if db.find(where={"username": username}):
             raise UserExists(USER_EXISTS)
 
-        student = db.create(username, email, age)
-        print(student)
+        user = db.create(username, email, age)
+        print(user)
 
 
 class DeleteUserAction(Action):
