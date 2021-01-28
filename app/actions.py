@@ -25,19 +25,17 @@ def find_user_by_username_or_404(username):
         raise NotFoundUser(NOT_FOUND_USER)
     return User(**user)
 
+
 def edit_user_values(value, msg):
     username = str(input(TYPE_USERNAME))
     user = find_user_by_username_or_404(username)
     print(f"Edytujesz uzytkownika: {user}")
     new_value = str(input(msg))
     db.update(user, values={value: new_value})
-
-    if value == "username":
-        returned_where = {"username": new_value}
-    else:
-        returned_where = {"username": user.username}
+    returned_where = {"username": new_value if value == "username" else user.username}
     updated_user = db.find(where=returned_where)
     print(User(**updated_user))
+
 
 class Action(ABC):
     @abstractmethod
