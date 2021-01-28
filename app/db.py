@@ -79,9 +79,14 @@ class Database:
         except Exception as e:
             print(e)
 
-    def update(self, values):
+    def update(self, user, values):
         try:
-            data = self.__load_data()
+            user.username = values.get("username", user.username)
+            user.email = values.get("email", user.email)
+            user.age = values.get("age", user.age)
+
+            self.delete(user.username)
+            self.create(user.username, user.email, user.age)
         except Exception as e:
             print(e)
 

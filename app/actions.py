@@ -9,7 +9,9 @@ from app.messages import (
     NOT_FOUND_USER,
     TYPE_USERNAME,
     USER_EXISTS,
-    EMPTY_USERS
+    EMPTY_USERS,
+    NOT_VALID_ARGUMENT,
+    NOT_VALID_AGE
 )
 
 
@@ -21,8 +23,21 @@ def find_user_by_username_or_404(username):
     user = db.find(where={"username": username})
     if user is None:
         raise NotFoundUser(NOT_FOUND_USER)
-    return user
+    return User(**user)
 
+def edit_user_values(value, msg):
+    username = str(input(TYPE_USERNAME))
+    user = find_user_by_username_or_404(username)
+    print(f"Edytujesz uzytkownika: {user}")
+    new_value = str(input(msg))
+    db.update(user, values={value: new_value})
+
+    if value == "username":
+        returned_where = {"username": new_value}
+    else:
+        returned_where = {"username": user.username}
+    updated_user = db.find(where=returned_where)
+    print(User(**updated_user))
 
 class Action(ABC):
     @abstractmethod
@@ -48,7 +63,7 @@ class FindUserAction(Action):
     def execute(self):
         username = str(input(TYPE_USERNAME))
         user = find_user_by_username_or_404(username)
-        print(User(**user))
+        print(user)
 
 
 class AddUserAction(Action):
@@ -62,6 +77,15 @@ class AddUserAction(Action):
         email = exploded_data[1]
         age = exploded_data[2]
 
+        inputs_to_check = [username, email, age]
+
+        if not age.isnumeric():
+            raise Exception(NOT_VALID_AGE)
+
+        for item in inputs_to_check:
+            if item == "":
+                raise Exception(NOT_VALID_ARGUMENT)
+
         if db.find(where={"username": username}):
             raise UserExists(USER_EXISTS)
 
@@ -73,7 +97,22 @@ class DeleteUserAction(Action):
     def execute(self):
         username = str(input(TYPE_USERNAME))
         user = find_user_by_username_or_404(username)
-        user = User(**user)
-        db.delete(username)
+        db.delete(user.username)
         print(f"Usunieto uzytkownika {user}")
 
+
+class UpdateUserUsernameAction(Action):
+    def execute(self):
+        edit_user_values("username", "Podaj nowa nazwe uzytkownika: ")
+
+
+class UpdateUserEmailAction(Action):
+
+    def execute(self):
+        edit_user_values("email", "Podaj nowy adres emial: ")
+
+
+class UpdateUserAgeAction(Action):
+
+    def execute(self):
+        edit_user_values("age", "Podaj nowy wiek uzytkownika: ")
