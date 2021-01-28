@@ -1,22 +1,79 @@
+import sys
 from abc import ABC, abstractmethod
-from db import db
-from exceptions import NotValidStudent
+from db import db, User
+from exceptions import InvalidUser, NotFoundUser, UserExists
+from messages import (
+    NOT_IMPLEMENTED_ERROR,
+    ACTION_USER_ADD_MESSAGE,
+    NOT_VALID_USER,
+    NOT_FOUND_USER,
+    TYPE_USERNAME,
+    USER_EXISTS,
+    EMPTY_USERS
+)
+
+
+def get_arguments(data):
+    return data.split(" ")
+
+
+def find_user_by_username_or_404(username):
+    user = db.find(where={"username": username})
+    if user is None:
+        raise NotFoundUser(NOT_FOUND_USER)
+    return user
+
 
 class Action(ABC):
     @abstractmethod
     def execute(self):
-        raise NotImplementedError("Nie zaimplementowano metody")
+        raise NotImplementedError(NOT_IMPLEMENTED_ERROR)
 
 
-class AddStudentAction(Action):
+class ExitProgramAction(Action):
     def execute(self):
-        data = str(input("Podaj imie, nazwisko, wiek oddzielajac je spacja: "))
-        exploded_data = data.split(" ")
+        sys.exit()
+
+
+class FindAllUserAction(Action):
+    def execute(self):
+        users = db.find_all()
+        if not len(users):
+            print(EMPTY_USERS)
+        for user in users:
+            print(User(**user))
+
+
+class FindUserAction(Action):
+    def execute(self):
+        username = str(input(TYPE_USERNAME))
+        user = find_user_by_username_or_404(username)
+        print(User(**user))
+
+
+class AddUserAction(Action):
+    def execute(self):
+        data = str(input(ACTION_USER_ADD_MESSAGE))
+        exploded_data = get_arguments(data)
         if len(exploded_data) != 3:
-            raise NotValidStudent("Błedne dane. Podaj imie, nazwisko, wiek oddzielajac je spacja")
-        name = exploded_data[0]
-        surname = exploded_data[1]
+            raise InvalidUser(NOT_VALID_USER)
+
+        username = exploded_data[0]
+        email = exploded_data[1]
         age = exploded_data[2]
 
-        student = db.create(name, surname, age)
+        if db.find(where={"username": username}):
+            raise UserExists(USER_EXISTS)
+
+        student = db.create(username, email, age)
         print(student)
+
+
+class DeleteUserAction(Action):
+    def execute(self):
+        username = str(input(TYPE_USERNAME))
+        user = find_user_by_username_or_404(username)
+        user = User(**user)
+        db.delete(username)
+        print(f"Usunieto uzytkownika {user}")
+

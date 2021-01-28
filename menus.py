@@ -1,5 +1,6 @@
-from actions import Action, AddStudentAction
-from exceptions import NotValidStudent, OptionNotFound
+from actions import Action, ExitProgramAction
+from exceptions import InvalidUser, InvalidOption
+from messages import NOT_FOUND_OPTION, SELECT_OPTIONS, EXIT_PROGRAM
 
 
 class Menu:
@@ -28,17 +29,17 @@ class Menu:
     def __select_option(self):
         try:
             while True:
-                option_number = int(input("Wybierz opcje: "))
+                option_number = int(input(SELECT_OPTIONS))
                 option = self.get_option(option_number)
                 if option is None:
-                    raise OptionNotFound("Nie znaleziono takiej opcji")
+                    raise InvalidOption(NOT_FOUND_OPTION)
                 action = option["action"]
                 action.execute()
                 self.show()
-        except NotValidStudent as e:
+        except InvalidUser as e:
             print(e)
             self.__select_option()
-        except ValueError as e:
+        except Exception as e:
             print(e)
             self.show()
             self.__select_option()
@@ -47,7 +48,7 @@ class Menu:
         try:
             self.show()
             self.__select_option()
-        except OptionNotFound as e:
+        except InvalidOption as e:
             print(e)
             self.__select_option()
 
@@ -56,10 +57,5 @@ class Menu:
         for option in self.options:
             print(f"{option['number']} - {option['title']}", end='\n')
 
-
-main_menu = Menu("Menu glowne")
-main_menu.add_option("Dodaj ucznia", AddStudentAction())
-main_menu.add_option("Edytuj ucznia", AddStudentAction())
-main_menu.add_option("Usun ucznia", AddStudentAction())
-main_menu.add_option("Lista uczniów", AddStudentAction())
-main_menu.add_option("Wybierz pojedynczego ucznia", AddStudentAction())
+    def add_exit_option(self):
+        return self.add_option(EXIT_PROGRAM, ExitProgramAction())

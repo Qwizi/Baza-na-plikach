@@ -2,20 +2,20 @@ import json
 import os
 
 
-class Student:
-    def __init__(self, name, surname, age):
-        self.name = name
-        self.surname = surname
+class User:
+    def __init__(self, username, email, age):
+        self.username = username
+        self.email = email
         self.age = age
 
     def __str__(self):
-        return f"{self.name} | {self.surname} | {self.age}"
+        return f"{self.username} | {self.email} | {self.age}"
 
 
 def create_database_file(filename):
     if os.path.exists(filename) is False:
         with open(filename, "w+") as file:
-            data = {"students": []}
+            data = {"users": []}
             json.dump(data, file)
 
 
@@ -24,17 +24,22 @@ class Database:
         self.filename = filename
         create_database_file(filename)
 
+    def __load_data(self):
+        with open(self.filename, "r") as file:
+            data = json.load(file)
+            return data
+
     def create(self, *args):
         try:
-            student = Student(*args)
+            user = User(*args)
             with open(self.filename, "r+") as file:
                 # Zalaczamy dane z pliku do zmiennej students
                 data = json.load(file)
-                data["students"].append(student.__dict__)
+                data["users"].append(user.__dict__)
                 file.seek(0)
                 file.write(json.dumps(data))
                 file.truncate()
-            return student
+            return user
         except Exception as e:
             print(e)
 
@@ -45,30 +50,28 @@ class Database:
             with open(self.filename) as file:
                 # Zalaczamy dane z pliku do zmiennej students
                 data = json.load(file)
-                return data["students"]
+                return data["users"]
         except Exception as e:
             print(e)
 
     def find(self, where):
         try:
-            with open(self.filename) as file:
-                data = json.load(file)
-                for student in data["students"]:
-                    if student["name"] == where["name"] and student["surname"] == where["surname"]:
-                        return Student(**student)
-                return None
+            data = self.__load_data()
+            for user in data["users"]:
+                if user["username"] == where["username"]:
+                    return user
+            return None
         except Exception as e:
             print(e)
 
-    def delete(self, name, surname):
+    def delete(self, username):
         try:
-            with open(self.filename, "r") as file:
-                data = json.load(file)
+            data = self.__load_data()
 
             with open(self.filename, "w") as file:
-                for index, student in enumerate(data["students"]):
-                    if student["name"] == name and student["surname"] == surname:
-                        data["students"].pop(index)
+                for index, user in enumerate(data["users"]):
+                    if user["username"] == username:
+                        data["users"].pop(index)
                 file.seek(0)
                 file.write(json.dumps(data))
                 file.truncate()
@@ -76,8 +79,11 @@ class Database:
         except Exception as e:
             print(e)
 
-    def update(self, name):
-        pass
+    def update(self, values):
+        try:
+            data = self.__load_data()
+        except Exception as e:
+            print(e)
 
 
 db = Database("data.json")

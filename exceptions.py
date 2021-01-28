@@ -1,5 +1,14 @@
-class NotValidStudent(Exception):
+class InvalidUser(Exception):
     pass
 
-class OptionNotFound(Exception):
+
+class NotFoundUser(Exception):
+    pass
+
+
+class UserExists(Exception):
+    pass
+
+
+class InvalidOption(Exception):
     pass
