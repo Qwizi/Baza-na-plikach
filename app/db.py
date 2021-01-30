@@ -12,27 +12,27 @@ class User:
         return f"{self.username} | {self.email} | {self.age}"
 
 
-def create_database_file(filename):
-    if os.path.exists(filename) is False:
-        with open(filename, "w+") as file:
-            data = {"users": []}
-            json.dump(data, file)
-
-
 class Database:
     def __init__(self, filename):
-        self.filename = filename
-        create_database_file(filename)
+        self.__filename = filename
+        self.__create_database_file(filename)
+
+    @staticmethod
+    def __create_database_file(filename):
+        if os.path.exists(filename) is False:
+            with open(filename, "w+") as file:
+                data = {"users": []}
+                json.dump(data, file)
 
     def __load_data(self):
-        with open(self.filename, "r") as file:
+        with open(self.__filename, "r") as file:
             data = json.load(file)
             return data
 
     def create(self, *args):
         try:
             user = User(*args)
-            with open(self.filename, "r+") as file:
+            with open(self.__filename, "r+") as file:
                 # Zalaczamy dane z pliku do zmiennej students
                 data = json.load(file)
                 data["users"].append(user.__dict__)
@@ -47,7 +47,7 @@ class Database:
     def find_all(self, where=None):
         try:
             # Otwieramy baze
-            with open(self.filename) as file:
+            with open(self.__filename) as file:
                 # Zalaczamy dane z pliku do zmiennej students
                 data = json.load(file)
                 return data["users"]
@@ -68,7 +68,7 @@ class Database:
         try:
             data = self.__load_data()
 
-            with open(self.filename, "w") as file:
+            with open(self.__filename, "w") as file:
                 for index, user in enumerate(data["users"]):
                     if user["username"] == username:
                         data["users"].pop(index)

@@ -2,6 +2,7 @@ SELECT_OPTIONS = "Wybierz opcje: "
 ACTION_USER_ADD_MESSAGE = "Podaj nazwe użytkownika, email, wiek oddzielajac je spacja: "
 EXIT_PROGRAM = "Zakończ program"
 TYPE_USERNAME = "Podaj nazwe użytkownika: "
+TYPE_EMAIL = "Podaj email: "
 USER_EXISTS = "Podany użytkownik już istnieje"
 EMPTY_USERS = "Brak uzytkownikow w bazie"
 

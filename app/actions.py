@@ -8,6 +8,7 @@ from app.messages import (
     NOT_VALID_USER,
     NOT_FOUND_USER,
     TYPE_USERNAME,
+    TYPE_EMAIL,
     USER_EXISTS,
     EMPTY_USERS,
     NOT_VALID_ARGUMENT,
@@ -15,32 +16,62 @@ from app.messages import (
 )
 
 
-def get_arguments(data):
-    return data.split(" ")
-
-
-def find_user_by_username_or_404(username):
-    user = db.find(where={"username": username})
-    if user is None:
-        raise NotFoundUser(NOT_FOUND_USER)
-    return User(**user)
-
-
-def edit_user_values(value, msg):
-    username = str(input(TYPE_USERNAME))
-    user = find_user_by_username_or_404(username)
-    print(f"Edytujesz uzytkownika: {user}")
-    new_value = str(input(msg))
-    db.update(user, values={value: new_value})
-    returned_where = {"username": new_value if value == "username" else user.username}
-    updated_user = db.find(where=returned_where)
-    print(User(**updated_user))
+def save_run_action(f):
+    def wrapper(*args):
+        try:
+            f(*args)
+            return setattr(args[0], "repeat_question", False)
+        except Exception as e:
+            print(e)
+            setattr(args[0], "repeat_question", True)
+    return wrapper
 
 
 class Action(ABC):
+    def __init__(self):
+        self.repeat_question = False
+
     @abstractmethod
     def execute(self):
         raise NotImplementedError(NOT_IMPLEMENTED_ERROR)
+
+    def find_user_or_404(self):
+        value = self.get_user_by_criterion()
+        user = db.find(where={value["criterion"]: value["value"]})
+        if user is None:
+            raise NotFoundUser(NOT_FOUND_USER)
+
+        return User(**user)
+
+    def edit_user_values(self, value, msg):
+        user = self.find_user_or_404()
+
+        print(f"Edytujesz uzytkownika: {user}")
+
+        new_value = str(input(msg))
+        db.update(user, values={value: new_value})
+        returned_where = {"username": new_value if value == "username" else user.username}
+        updated_user = db.find(where=returned_where)
+        print(User(**updated_user))
+
+    @staticmethod
+    def get_arguments(data):
+        return data.split(" ")
+
+    @staticmethod
+    def get_user_by_criterion():
+        username_criterion = "username"
+        email_criterion = "email"
+        criterion_list = [username_criterion, email_criterion]
+        criterion_value = str(
+            input(f"Podaj jakim kriterum chcesz wyszukac uzytkownika [{', '.join(criterion_list)}]: "))
+        if criterion_value not in criterion_list:
+            raise Exception("Takie kriterium nie istnieje")
+        value = str(input(TYPE_USERNAME)) if criterion_value == username_criterion else str(input(TYPE_EMAIL))
+        return {
+            "value": value,
+            "criterion": criterion_value
+        }
 
 
 class ExitProgramAction(Action):
@@ -49,6 +80,7 @@ class ExitProgramAction(Action):
 
 
 class FindAllUserAction(Action):
+    @save_run_action
     def execute(self):
         users = db.find_all()
         if not len(users):
@@ -58,16 +90,17 @@ class FindAllUserAction(Action):
 
 
 class FindUserAction(Action):
+    @save_run_action
     def execute(self):
-        username = str(input(TYPE_USERNAME))
-        user = find_user_by_username_or_404(username)
+        user = self.find_user_or_404()
         print(user)
 
 
 class AddUserAction(Action):
+    @save_run_action
     def execute(self):
         data = str(input(ACTION_USER_ADD_MESSAGE))
-        exploded_data = get_arguments(data)
+        exploded_data = self.get_arguments(data)
         if len(exploded_data) != 3:
             raise InvalidUser(NOT_VALID_USER)
 
@@ -92,25 +125,26 @@ class AddUserAction(Action):
 
 
 class DeleteUserAction(Action):
+    @save_run_action
     def execute(self):
-        username = str(input(TYPE_USERNAME))
-        user = find_user_by_username_or_404(username)
+        user = self.find_user_or_404()
         db.delete(user.username)
         print(f"Usunieto uzytkownika {user}")
 
 
 class UpdateUserUsernameAction(Action):
+    @save_run_action
     def execute(self):
-        edit_user_values("username", "Podaj nowa nazwe uzytkownika: ")
+        self.edit_user_values("username", "Podaj nowa nazwe uzytkownika: ")
 
 
 class UpdateUserEmailAction(Action):
-
+    @save_run_action
     def execute(self):
-        edit_user_values("email", "Podaj nowy adres emial: ")
+        self.edit_user_values("email", "Podaj nowy adres emial: ")
 
 
 class UpdateUserAgeAction(Action):
-
+    @save_run_action
     def execute(self):
-        edit_user_values("age", "Podaj nowy wiek uzytkownika: ")
+        self.edit_user_values("age", "Podaj nowy wiek uzytkownika: ")
