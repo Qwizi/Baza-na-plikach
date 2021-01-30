@@ -1,7 +1,8 @@
-from app.actions import Action, ExitProgramAction
-from app.exceptions import InvalidUser, InvalidOption
-from app.messages import NOT_FOUND_OPTION, SELECT_OPTIONS, EXIT_PROGRAM
 import sys
+
+from app.actions import Action, ExitProgramAction
+from app.exceptions import InvalidOption
+from app.messages import NOT_FOUND_OPTION, SELECT_OPTIONS, EXIT_PROGRAM
 
 
 class Menu:
