@@ -13,9 +13,9 @@ class User:
 
 
 def handle_error(f):
-    def wrapper(*args):
+    def wrapper(*args, **kwargs):
         try:
-            return f(*args)
+            return f(*args, **kwargs)
         except Exception as e:
             print(e)
 

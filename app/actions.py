@@ -1,5 +1,6 @@
 import sys
 from abc import ABC, abstractmethod
+
 from app.db import db, User
 from app.exceptions import InvalidUser, NotFoundUser, UserExists
 from app.messages import (
@@ -17,13 +18,14 @@ from app.messages import (
 
 
 def save_run_action(f):
-    def wrapper(*args):
+    def wrapper(*args, **kwargs):
         try:
-            f(*args)
+            f(*args, **kwargs)
             return setattr(args[0], "repeat_question", False)
         except Exception as e:
             print(e)
             setattr(args[0], "repeat_question", True)
+
     return wrapper
 
 
@@ -117,7 +119,7 @@ class AddUserAction(Action):
             if item == "":
                 raise Exception(NOT_VALID_ARGUMENT)
 
-        if db.find(where={"username": username}):
+        if db.find(where={"username": username}) or db.find(where={"email": email}):
             raise UserExists(USER_EXISTS)
 
         user = db.create(username, email, age)
